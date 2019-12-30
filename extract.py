@@ -57,13 +57,26 @@ def filter_ends(corners):
         raise Exception(msg)
 
 
-def compute_rectangles(labels, label_indices):
+def compute_tolerance(contour, tolerance_frac):
+    '''Compute tolerance for Douglas-Peucker algorithm used in
+    approximate_polygon() by computing max dimension of contour in vertical and
+    horizontal directions.
+    '''
+    coord1, coord2 = contour.T
+    dim1 = np.max(coord1) - np.min(coord1)
+    dim2 = np.max(coord2) - np.min(coord2)
+    return tolerance_frac * max(dim1, dim2)
+
+
+def compute_rectangles(labels, label_indices, tolerance_frac=0.03):
     rectangles = []
     for n in label_indices:
         mask = labels == n
-        contours = measure.find_contours(mask, 0.5)  # find_contours returns (row, col) elements
+        # find_contours returns (row, col) coords, contour will wind clockwise
+        contours = measure.find_contours(mask, 0.5)
         contour = sorted(contours, key=len)[-1]
-        corners = measure.approximate_polygon(contour, tolerance=50)
+        tolerance = compute_tolerance(contour, tolerance_frac)
+        corners = measure.approximate_polygon(contour, tolerance=tolerance)
         corners = filter_ends(corners)
         rectangles.append(corners)
     return rectangles
