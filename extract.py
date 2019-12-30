@@ -5,9 +5,8 @@ import argparse
 import os
 
 import numpy as np
-from skimage import io, color
-from skimage import measure
-from skimage import transform
+from skimage import img_as_ubyte
+from skimage import io, color, measure, transform
 from skimage.filters import sobel
 from skimage.morphology import watershed
 import scipy.ndimage as ndi
@@ -118,18 +117,21 @@ def append_suffix(filename, suffix):
 def main(args):
     for filename in args.images:
         try:
+            print(filename)
             os.makedirs(args.outdir, exist_ok=True)
             print(f'Processing {filename}...', end='')
             image = io.imread(filename)
             photos = process_image(image)
             for n, photo in enumerate(photos):
-                savename = append_suffix(filename, n)
-                io.imsave(os.path.join(args.outdir, savename), photo)
+                savename = append_suffix(os.path.basename(filename), n)
+                path = os.path.join(args.outdir, savename)
+                io.imsave(path, img_as_ubyte(photo))
             print('done.')
         except:
             print('FAILED.')
             os.makedirs(args.errdir, exist_ok=True)
-            io.imsave(os.path.join(args.errdir, filename), image)
+            path = os.path.join(args.errdir, os.path.basename(filename))
+            io.imsave(path, image)
 
 
 if __name__ == '__main__':
@@ -137,9 +139,9 @@ if __name__ == '__main__':
 
     parser.add_argument('images', type=str, nargs='+',
                         help='scanned image files to process')
-    parser.add_argument('--outdir', type=str, default='./photos',
+    parser.add_argument('--outdir', type=str, default='photos',
                         help='path to write extracted photos')
-    parser.add_argument('--errdir', type=str, default='./errors',
+    parser.add_argument('--errdir', type=str, default='errors',
                         help='path to write photos which could not be processed')
 
     args = parser.parse_args()
