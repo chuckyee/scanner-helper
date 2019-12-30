@@ -39,3 +39,6 @@ photos for Dad. Script is not particularly robust, in particular:
 
  - conversion of contour to rectangle is relies on manually-set tolerance which
    currently depends on scan resolution
+
+ - automatic orientation detection not supported (either through EXIF or image
+   content)
